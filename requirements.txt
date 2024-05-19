@@ -1,0 +1,8 @@
+fastapi
+curl_cffi
+uvicorn
+tiktoken
+python-dotenv
+websockets
+pillow
+pybase64

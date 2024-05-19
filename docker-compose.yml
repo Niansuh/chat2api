@@ -1,0 +1,18 @@
+version: '3'
+
+services:
+  chat2api:
+    image: niansuh/chat2api:latest
+    container_name: chat2api
+    restart: unless-stopped
+    ports:
+      - '5005:5005'
+    environment:
+      - ARKOSE_TOKEN_URL=http://arkose:5006/token
+
+  arkose:
+    image: lanqian528/funcaptcha_solver:latest
+    container_name: funcaptcha_solver
+    restart: unless-stopped
+    ports:
+      - '5006:5006'
