@@ -7,6 +7,8 @@ on:
     paths-ignore:
       - 'README.md'
       - 'docker-compose.yml'
+      - 'docs/**'
+      - '.github/workflows/build_docker.yml'
   workflow_dispatch:
 
 jobs:
@@ -35,7 +37,7 @@ jobs:
           images: niansuh/chat2api
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
-            type=raw,value=v1.0.7
+            type=raw,value=v1.1.2
 
       - name: Build and push
         uses: docker/build-push-action@v5
