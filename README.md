@@ -135,16 +135,16 @@ curl --location 'http://127.0.0.1:5005/v1/chat/completions' \
 Each environment variable has a default value. If you do not understand the meaning of the environment variable, please do not set it, let alone pass an empty value.
 
 ```
-# 安全相关
+# Security related
 API_PREFIX=your_prefix                               // API prefix password, if not set, it is easy to be accessed by others. After setting, you need to request /your_prefix/v1/chat/completions
 AUTHORIZATION=sk-xxxxxxxx,sk-yyyyyyyy                // Go to /tokens first to upload ac or rt, and pass in AUTHORIZATION when requesting. Multiple accounts can be polled.
 
-# 请求相关
+# Request related
 CHATGPT_BASE_URL=https://chatgpt.com                 // ChatGPT gateway address. After setting, the requested website will be changed. Multiple gateways are separated by commas.
 PROXY_URL=your_first_proxy, your_second_proxy        // Proxy URL, multiple proxies separated by commas
 ARKOSE_TOKEN_URL=https://arkose.example.com/token    // Get the address of Arkose token, instructions are provided above
 
-# 功能相关
+# Function related
 HISTORY_DISABLED=true                                // Whether not to save the chat record and return conversation_id, true means not to save and not return
 POW_DIFFICULTY=000032                                // The difficulty of proof of work to be solved, the smaller the string, the longer the calculation time, it is recommended to 000032
 RETRY_TIMES=3                                        // Number of error retries
