@@ -42,7 +42,7 @@ When requesting, pass in the value you configured in `AUTHORIZATION` to poll mul
 ### Deploy directly
 
 ```bash
-git clone https://github.com/LanQian528/chat2api
+git clone https://github.com/Niansuh/chat2api
 cd chat2api
 pip install -r requirements.txt
 python app.py
@@ -56,7 +56,7 @@ You need to install Docker and Docker Compose.
 docker run -d \
   --name chat2api \
   -p 5005:5005 \
-  lanqian528/chat2api:latest
+  niansuh/chat2api:latest
 ```
 
 ### (Recommended, 4.0 available) Docker Compose deployment
