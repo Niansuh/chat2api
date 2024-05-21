@@ -1,6 +1,6 @@
 # CHAT2API
 
-# Original Author: https://github.com/lanqian528/chat2api
+## Original Author: https://github.com/lanqian528/chat2api
 
 🤖 A simple ChatGPT TO API proxy
 
