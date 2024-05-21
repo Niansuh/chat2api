@@ -1,8 +1,0 @@
---------------------------Delete this part----------------------------
-# Place AccessToken or RefreshToken in this file, and then change the file name to token.txt
-# One token per line, please do not have extra spaces or line breaks.
-# For example:
-OMo96QgRRXwEIkqKRasfOFNAFNLKFNwPv3  # RefreshToken
-eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ik1UaEVOVUpHTkVNMVFURTRNMEZCTWpkQ05UZ...  # AccessToken
-eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ik1UaEVOVUpHTkVNMVFURTRNMEZCTWpkQ05UZ...  # AccessToken
---------------------------Delete this part----------------------------
