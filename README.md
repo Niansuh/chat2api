@@ -39,6 +39,26 @@ When requesting, pass in the value you configured in `AUTHORIZATION` to poll mul
 
 ![tokens.png](docs/tokens.png)
 
+## Environment variables
+
+Each environment variable has a default value. If you do not understand the meaning of the environment variable, please do not set it, let alone pass an empty value.
+
+```
+# Security related
+API_PREFIX=your_prefix // API prefix password. If not set, it is easy to be accessed. After setting, you need to request /your_prefix/v1/chat/completions
+AUTHORIZATION=sk-xxxxxxxx,sk-yyyyyyyy // Go first /tokens Upload ac or rt, pass it in when requesting AUTHORIZATION Multiple accounts can be polled
+# Request related
+CHATGPT_BASE_URL=https://chatgpt.com // ChatGPT gateway address. After setting, the requested website will be changed. Multiple gateways are separated by commas.
+PROXY_URL=your_first_proxy, your_second_proxy //Proxy URL, multiple proxies are separated by commas
+ARKOSE_TOKEN_URL=https://arkose.example.com/token // Get the address of Arkose token, instructions are provided above
+# Function related
+HISTORY_DISABLED=true // Whether not to save the chat record and return conversation_id, true means not to save and not return
+POW_DIFFICULTY=000032 // The difficulty of proof of work to be solved. The smaller the string, the longer the calculation time. It is recommended to 000032
+RETRY_TIMES=3 //Number of retries on error
+ENABLE_GATEWAY=true // Whether to enable gateway mode (WEBUI), true means enabled
+CONVERSATION_ONLY=false // The gateway used supports being enabled when the server handles pow and arkose. If enabled, the conversation interface will be used directly.
+```
+
 ## Deploy
 
 ### Deploy directly
@@ -61,7 +81,7 @@ docker run -d \
   niansuh/chat2api:latest
 ```
 
-### (Recommended, 4.0 available) Docker Compose deployment
+### (Recommended, PLUS account available) Docker Compose deployment
 
 Create a new directory, such as chat2api, and enter that directory:
 
@@ -84,26 +104,30 @@ docker-compose up -d
 
 ## Use
 
-- To use it on the web, directly access the following address, which only supports binding GPT3.5:
+1. To use it on the web, directly access the following address, which only supports binding GPT3.5:
 
 ```
 http://127.0.0.1:5005
 ```
 
-- Using API, supports passing AccessToken or RefreshToken, available GPT-4, GPT-4o, GPTs:
+2. Using API, supports passing AccessToken or RefreshToken, available GPT-4, GPT-4o, GPTs:
 
 ```bash
 curl --location 'http://127.0.0.1:5005/v1/chat/completions' \
 --header 'Content-Type: application/json' \
---header 'Authorization: Bearer {{Token}}' \
+--header 'Authorization: Bearer {{OpenAI APIKEY}}' \
 --data '{
      "model": "gpt-3.5-turbo",
      "messages": [{"role": "user", "content": "Say this is a test!"}],
      "stream": true
    }'
 ```
-> Fill in the `AccessToken` or `RefreshToken` of your account in `Token`
+Pass in your account's `AccessToken` or `RefreshToken` as `OpenAI APIKEY`
+
+If the `AUTHORIZATION` environment variable is set, the set value can be passed in as `OpenAI APIKEY` for multi-Tokens polling
+
 > - Obtain `AccessToken`: After logging in to chatgpt official website, open https://chatgpt.com/api/auth/session to obtain the value of `accessToken`
+> - `RefreshToken` acquisition: No acquisition method is provided here.
 > - Login-free gpt3.5 No need to pass in Token
 
 
@@ -131,35 +155,10 @@ curl --location 'http://127.0.0.1:5005/v1/chat/completions' \
 {"token": "45017c7bb17115f36.7290869304|r=ap-southeast-1|meta=3|metabgclr=transparent|metaiconclr=%23757575|guitextcolor=%23000000|pk=0A1D34FC-659D-4E23-B17B-694DCFCF6A6C|at=40|sup=1|rid=3|ag=101|cdn_url=https%3A%2F%2Ftcr9i.openai.com%2Fcdn%2Ffc|lurl=https%3A%2F%2Faudio-ap-southeast-1.arkoselabs.com|surl=https%3A%2F%2Ftcr9i.openai.com|smurl=https%3A%2F%2Ftcr9i.openai.com%2Fcdn%2Ffc%2Fassets%2Fstyle-manager"}
 ```
 
-
-## Environment variables
-
-Each environment variable has a default value. If you do not understand the meaning of the environment variable, please do not set it, let alone pass an empty value.
-
-```
-# Security related
-API_PREFIX=your_prefix                               // API prefix password, if not set, it is easy to be accessed by others. After setting, you need to request /your_prefix/v1/chat/completions
-AUTHORIZATION=sk-xxxxxxxx,sk-yyyyyyyy                // Go to /tokens first to upload ac or rt, and pass in AUTHORIZATION when requesting. Multiple accounts can be polled.
-
-# Request related
-CHATGPT_BASE_URL=https://chatgpt.com                 // ChatGPT gateway address. After setting, the requested website will be changed. Multiple gateways are separated by commas.
-PROXY_URL=your_first_proxy, your_second_proxy        // Proxy URL, multiple proxies separated by commas
-ARKOSE_TOKEN_URL=https://arkose.example.com/token    // Get the address of Arkose token, instructions are provided above
-
-# Function related
-HISTORY_DISABLED=true                                // Whether not to save the chat record and return conversation_id, true means not to save and not return
-POW_DIFFICULTY=000032                                // The difficulty of proof of work to be solved, the smaller the string, the longer the calculation time, it is recommended to 000032
-RETRY_TIMES=3                                        // Number of error retries
-ENABLE_GATEWAY=true                                  // Whether to enable gateway mode (WEBUI), true means enabled
-CONVERSATION_ONLY=false                              // The gateway used can be turned on when the server handles POW and arkose. If turned on, the conversation interface can be used directly.
-```
-
-
-
 ## Common problem
 
 > - Error code:
->   - `401`: The current IP does not support login-free, please try to change the IP address, or set the proxy in the environment variable `PROXY_URL`.
+>   - `401`: The current IP does not support login-free, please try changing the IP address, or setting a proxy in the environment variable `PROXY_URL`, or your authentication fails.
 >   - `403`: Please check the specific error information in the log
 >   - `429`: The current IP request has exceeded the limit within 1 hour. Please try again later or change the IP.
 >   - `500`: Server internal error, request failed.
@@ -168,6 +167,8 @@ CONVERSATION_ONLY=false                              // The gateway used can be 
 > - What is known:
 >   - Many Japanese IPs do not support Bintang. It is recommended to use American IPs for Bintang 3.5.
 >   - 99% of accounts support free `GPT-4o`, but it is opened according to the IP region. Currently, Japan and Singapore IP are known to have a higher probability of being opened.
+> - What is the environment variable `AUTHORIZATION`?
+>   - It is an authentication that you set for chat2api. After setting it, you can use the saved Tokens for polling. When requesting, it is passed in as `APIKEY`
 
 > - How to obtain AccessToken?
 >   - After logging in to the chatgpt official website, open https://chatgpt.com/api/auth/session to obtain the value of `accessToken`
