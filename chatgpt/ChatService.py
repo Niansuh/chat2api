@@ -48,6 +48,8 @@ class ChatService:
         self.api_messages = self.data.get("messages", [])
         self.prompt_tokens = 0
         self.max_tokens = self.data.get("max_tokens", 2147483647)
+        if not isinstance(self.max_tokens, int):
+            self.max_tokens = 2147483647
 
         self.chat_headers = None
         self.chat_request = None
@@ -107,7 +109,7 @@ class ChatService:
                 resp = r.json()
                 self.persona = resp.get("persona")
                 if "gpt-4" in self.origin_model and self.persona != "chatgpt-paid":
-                    if "gpt-4o" not in self.origin_model:
+                    if "gpt-4o" not in self.origin_model and "gpt-4-gizmo" not in self.origin_model:
                         raise HTTPException(status_code=404, detail={
                             "message": f"The model `{self.origin_model}` does not exist or you do not have access to it.",
                             "type": "invalid_request_error",
@@ -175,7 +177,11 @@ class ChatService:
             raise HTTPException(status_code=500, detail=str(e))
 
     async def prepare_send_conversation(self):
-        chat_messages, self.prompt_tokens = await api_messages_to_chat(self, self.api_messages)
+        try:
+            chat_messages, self.prompt_tokens = await api_messages_to_chat(self, self.api_messages)
+        except Exception as e:
+            logger.error(f"Failed to format messages: {str(e)}")
+            raise HTTPException(status_code=400, detail="Failed to format messages.")
         self.chat_headers = self.base_headers.copy()
         self.chat_headers.update({
             'Accept': 'text/event-stream',
@@ -196,7 +202,7 @@ class ChatService:
         elif "gpt-4-mobile" in self.origin_model:
             model = "gpt-4-mobile"
         elif "gpt-4-gizmo" in self.origin_model:
-            model = "gpt-4"
+            model = "gpt-4o"
             gizmo_id = self.data.get("model").split("gpt-4-gizmo-")[-1]
             conversation_mode = {"kind": "gizmo_interaction", "gizmo_id": gizmo_id}
         elif "gpt-4" in self.origin_model:
