@@ -38,6 +38,10 @@ async def to_send_conversation(request_data, access_token):
     except HTTPException as e:
         await chat_service.close_client()
         raise HTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        await chat_service.close_client()
+        logger.error(f"Server error, {str(e)}")
+        raise HTTPException(status_code=500, detail="Server error")
 
 
 @app.post(f"/{api_prefix}/v1/chat/completions" if api_prefix else "/v1/chat/completions")
@@ -66,7 +70,7 @@ async def send_conversation(request: Request, token=Depends(verify_token)):
         raise HTTPException(status_code=500, detail="Server error")
 
 
-@app.get(f"/{api_prefix}/tokens" if api_prefix else "/upload", response_class=HTMLResponse)
+@app.get(f"/{api_prefix}/tokens" if api_prefix else "/tokens", response_class=HTMLResponse)
 async def upload_html(request: Request):
     tokens_count = len(token_list)
     return templates.TemplateResponse("tokens.html", {"request": request, "api_prefix": api_prefix, "tokens_count": tokens_count})
@@ -82,7 +86,7 @@ async def upload_post(request: Request, text: str = Form(...)):
                 f.write(line.strip() + "\n")
     logger.info(f"Token list count: {len(token_list)}")
     tokens_count = len(token_list)
-    return templates.TemplateResponse("tokens.html", {"request": request, "api_prefix": api_prefix, "tokens_count": tokens_count})
+    return {"status": "success", "tokens_count": tokens_count}
 
 
 @app.post(f"/{api_prefix}/tokens/clear" if api_prefix else "/tokens/clear")
@@ -92,7 +96,7 @@ async def upload_post(request: Request):
         pass
     logger.info(f"Token list count: {len(token_list)}")
     tokens_count = len(token_list)
-    return templates.TemplateResponse("tokens.html", {"request": request, "api_prefix": api_prefix, "tokens_count": tokens_count})
+    return {"status": "success", "tokens_count": tokens_count}
 
 
 @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH", "TRACE"])
