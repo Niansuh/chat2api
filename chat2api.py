@@ -75,6 +75,7 @@ async def send_conversation(request: Request, req_token: str = Depends(oauth2_sc
     except HTTPException as e:
         await chat_service.close_client()
         if e.status_code == 500:
+            logger.error(f"Server error, {str(e)}")
             raise HTTPException(status_code=500, detail="Server error")
         raise HTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
@@ -86,7 +87,8 @@ async def send_conversation(request: Request, req_token: str = Depends(oauth2_sc
 @app.get(f"/{api_prefix}/tokens" if api_prefix else "/tokens", response_class=HTMLResponse)
 async def upload_html(request: Request):
     tokens_count = len(token_list)
-    return templates.TemplateResponse("tokens.html", {"request": request, "api_prefix": api_prefix, "tokens_count": tokens_count})
+    return templates.TemplateResponse("tokens.html",
+                                      {"request": request, "api_prefix": api_prefix, "tokens_count": tokens_count})
 
 
 @app.post(f"/{api_prefix}/tokens/upload" if api_prefix else "/tokens/upload")
