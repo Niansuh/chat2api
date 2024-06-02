@@ -109,6 +109,7 @@ async def stream_response(service, response, model, max_tokens):
     created_time = int(time.time())
     completion_tokens = -1
     len_last_content = 0
+    len_last_citation = 0
     last_content_type = None
     last_recipient = None
     start = False
@@ -155,7 +156,15 @@ async def stream_response(service, response, model, max_tokens):
                         else:
                             if message_id and message_id != message.get("id"):
                                 continue
-                            new_text = part[len_last_content:]
+                            citation = message.get("metadata", {}).get("citations", [])
+                            if len(citation) > len_last_citation:
+                                inside_metadata = citation[-1].get("metadata", {})
+                                citation_title = inside_metadata.get("title", "")
+                                citation_url = inside_metadata.get("url", "")
+                                new_text = f' **[[""]]({citation_url} "{citation_title}")** '
+                                len_last_citation = len(citation)
+                            else:
+                                new_text = part[len_last_content:]
                             len_last_content = len(part)
                     else:
                         text = content.get("text", "")
@@ -290,7 +299,8 @@ async def api_messages_to_chat(service, api_messages, upload_by_url=False):
         role = api_message.get('role')
         content = api_message.get('content')
         if upload_by_url:
-            content = format_messages_with_url(content)
+            if isinstance(content, str):
+                content = format_messages_with_url(content)
         if isinstance(content, list):
             parts = []
             attachments = []
@@ -298,7 +308,7 @@ async def api_messages_to_chat(service, api_messages, upload_by_url=False):
             for i in content:
                 if i.get("type") == "text":
                     parts.append(i.get("text"))
-                if i.get("type") == "image_url":
+                elif i.get("type") == "image_url":
                     image_url = i.get("image_url")
                     url = image_url.get("url")
                     detail = image_url.get("detail", "auto")
