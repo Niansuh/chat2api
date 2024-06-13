@@ -27,18 +27,20 @@ def save_refresh_map(refresh_map):
         json.dump(refresh_map, file)
 
 
-async def rt2ac(refresh_token):
-    if refresh_token in refresh_map and int(time.time()) - refresh_map.get(refresh_token, {}).get("timestamp",
-                                                                                                  0) < 5 * 24 * 60 * 60:
+async def rt2ac(refresh_token, force_refresh=False):
+    if not force_refresh and (refresh_token in refresh_map and int(time.time()) - refresh_map.get(refresh_token, {}).get("timestamp", 0) < 5 * 24 * 60 * 60):
         access_token = refresh_map[refresh_token]["token"]
         logger.info(f"refresh_token -> access_token from cache")
         return access_token
     else:
-        access_token = await chat_refresh(refresh_token)
-        refresh_map[refresh_token] = {"token": access_token, "timestamp": int(time.time())}
-        save_refresh_map(refresh_map)
-        logger.info(f"refresh_token -> access_token with openai: {access_token}")
-        return access_token
+        try:
+            access_token = await chat_refresh(refresh_token)
+            refresh_map[refresh_token] = {"token": access_token, "timestamp": int(time.time())}
+            save_refresh_map(refresh_map)
+            logger.info(f"refresh_token -> access_token with openai: {access_token}")
+            return access_token
+        except HTTPException as e:
+            raise HTTPException(status_code=e.status_code, detail=e.detail)
 
 
 async def chat_refresh(refresh_token):
@@ -55,9 +57,10 @@ async def chat_refresh(refresh_token):
             access_token = r.json()['access_token']
             return access_token
         else:
-            raise Exception("Unknown or invalid refresh token.")
+            raise Exception(r.text[:100])
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to refresh access_token: {str(e)}")
+        logger.error(f"Failed to refresh access_token `{refresh_token}`: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to refresh access_token.")
     finally:
         await client.close()
         del client
