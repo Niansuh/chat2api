@@ -14,8 +14,8 @@ from starlette.background import BackgroundTask
 from chatgpt.ChatService import ChatService
 from chatgpt.reverseProxy import chatgpt_reverse_proxy
 from utils.Logger import logger
-from utils.authorization import token_list, refresh_all_tokens
-from utils.config import api_prefix
+from utils.authorization import token_list, error_token_list, refresh_all_tokens
+from utils.config import api_prefix, scheduled_refresh
 from utils.retry import async_retry
 
 warnings.filterwarnings("ignore")
@@ -36,9 +36,10 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def app_start():
-    scheduler.add_job(id='refresh', func=refresh_all_tokens, trigger='cron', hour=3, minute=0, day='*/4')
-    scheduler.start()
-    asyncio.get_event_loop().call_later(0, lambda: asyncio.create_task(refresh_all_tokens()))
+    if scheduled_refresh:
+        scheduler.add_job(id='refresh', func=refresh_all_tokens, trigger='cron', hour=3, minute=0, day='*/4', kwargs={'force_refresh': True})
+        scheduler.start()
+        asyncio.get_event_loop().call_later(0, lambda: asyncio.create_task(refresh_all_tokens(force_refresh=False)))
 
 
 async def to_send_conversation(request_data, req_token):
@@ -87,7 +88,7 @@ async def send_conversation(request: Request, req_token: str = Depends(oauth2_sc
 
 @app.get(f"/{api_prefix}/tokens" if api_prefix else "/tokens", response_class=HTMLResponse)
 async def upload_html(request: Request):
-    tokens_count = len(token_list)
+    tokens_count = len(set(token_list) - set(error_token_list))
     return templates.TemplateResponse("tokens.html",
                                       {"request": request, "api_prefix": api_prefix, "tokens_count": tokens_count})
 
@@ -101,18 +102,25 @@ async def upload_post(text: str = Form(...)):
             with open("data/token.txt", "a", encoding="utf-8") as f:
                 f.write(line.strip() + "\n")
     logger.info(f"Token list count: {len(token_list)}")
-    tokens_count = len(token_list)
+    tokens_count = len(set(token_list) - set(error_token_list))
     return {"status": "success", "tokens_count": tokens_count}
 
 
 @app.post(f"/{api_prefix}/tokens/clear" if api_prefix else "/tokens/clear")
 async def upload_post():
     token_list.clear()
+    error_token_list.clear()
     with open("data/token.txt", "w", encoding="utf-8") as f:
         pass
     logger.info(f"Token list count: {len(token_list)}")
-    tokens_count = len(token_list)
+    tokens_count = len(set(token_list) - set(error_token_list))
     return {"status": "success", "tokens_count": tokens_count}
+
+
+@app.post(f"/{api_prefix}/tokens/error" if api_prefix else "/tokens/error")
+async def error_tokens():
+    error_tokens_list = list(set(error_token_list))
+    return {"status": "success", "error_tokens": error_tokens_list}
 
 
 @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH", "TRACE"])
