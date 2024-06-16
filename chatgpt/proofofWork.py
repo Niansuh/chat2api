@@ -419,7 +419,7 @@ async def get_dpl(service):
 
 def get_parse_time():
     now = datetime.now(timezone(timedelta(hours=-5)))
-    return now.strftime(timeLayout) + " GMT-0500 (Eastern Standard Time)"
+    return now.strftime(timeLayout) + " GMT+0500 (Pakistan Standard Time)"
 
 
 def get_config(user_agent):
