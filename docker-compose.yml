@@ -10,14 +10,14 @@ services:
     volumes:
       - ./data:/app/data # Mount some data that needs to be saved
     environment:
-      - TZ=Asia/Shanghai # Set time zone
-      - ARKOSE_TOKEN_URL=http://arkose:5006/token # Already built in, don’t change it
+      - TZ=Asia/Shanghai # 设置时区
+      - ARK0SE_TOKEN_URL=http://ark0se:5006/token # Already built-in, do not change
 
-  arkose:
+  ark0se:
     image: lanqian528/funcaptcha_solver:latest
     container_name: funcaptcha_solver
     restart: unless-stopped
     ports:
       - '5006:5006'
     environment:
-      - TZ=Asia/Shanghai # Set time zone
+      - TZ=Asia/Shanghai # Set the time zone
