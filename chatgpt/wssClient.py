@@ -2,12 +2,12 @@ import json
 import time
 
 from utils.Logger import logger
-import chatgpt.globals as globals
+import utils.globals as globals
 
 
 def save_wss_map(wss_map):
-    with open(globals.WSS_MAP_FILE, "w") as file:
-        json.dump(wss_map, file)
+    with open(globals.WSS_MAP_FILE, "w") as f:
+        json.dump(wss_map, f, indent=4)
 
 
 async def token2wss(token):
