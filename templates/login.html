@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        #popup {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-300 via-indigo-300 to-purple-400 min-h-screen flex items-center justify-center">
+    <div class="bg-white p-8 rounded-xl shadow-2xl w-96 max-w-md">
+        <h2 class="text-3xl font-bold text-center text-gray-800 mb-4">Login</h2>
+        <button
+            type="button"
+            onclick="openPopup()"
+            class="w-full bg-gradient-to-r from-indigo-500 to-blue-500 text-white font-bold py-3 px-4 rounded-lg hover:opacity-90 transition duration-200 ease-in-out"
+        >
+            RefreshToken / AccessToken
+        </button>
+        <p class="text-xs text-gray-500 text-center mt-4">
+            <span class="font-semibold text-gray-800">Not
+                <span class="font-bold text-indigo-600">RT</span>
+                And
+                <span class="font-bold text-indigo-600">AT</span>
+                The input will be used as</span>
+            <span class="font-bold text-indigo-600">Seed</span>
+            <span class="font-semibold text-gray-800">Randomly select a backend account</span>
+        </p>
+    </div>
+
+    <div id="popup" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+        <div class="bg-white p-8 rounded-xl shadow-lg max-w-lg w-full h-auto">
+<!--            <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">Please enter your Token</h3>-->
+            <p class="font-semibold text-gray-800 text-center mb-1">Click Directly
+                <span class="font-bold text-indigo-600">Start</span>
+                Enter the recently used account</p>
+            <label for="popup-input"></label>
+            <textarea
+                id="popup-input"
+                name="token"
+                placeholder="RefreshToken / AccessToken / SeedToken"
+                class="w-full h-56 px-4 py-4 text-md rounded-md bg-gray-100 border-gray-300 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200 text-gray-800 transition duration-200 ease-in-out mb-4"
+                style="resize: none;"
+            ></textarea>
+            <div class="flex justify-center space-x-4">
+                <button
+                    onclick="submitToken()"
+                    class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200 ease-in-out"
+                >
+                    Start
+                </button>
+                <button
+                    onclick="closePopup()"
+                    class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg transition duration-200 ease-in-out"
+                >
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openPopup() {
+            document.getElementById('popup').style.display = 'flex';
+        }
+
+        function closePopup() {
+            document.getElementById('popup').style.display = 'none';
+        }
+
+        function submitToken() {
+            var inputValue = document.getElementById('popup-input').value;
+            window.location.href = '/?token=' + inputValue;
+            closePopup();
+        }
+    </script>
+</body>
+</html>
