@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 
 from utils.Logger import logger
-from utils.config import retry_times
+from utils.configs import retry_times
 
 
 async def async_retry(func, *args, max_retries=retry_times, **kwargs):
