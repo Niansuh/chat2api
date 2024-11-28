@@ -1,6 +1,6 @@
-fastapi
-python-multipart
-curl_cffi
+fastapi==0.115.3
+python-multipart==0.0.13
+curl_cffi==0.7.3
 uvicorn
 tiktoken
 python-dotenv
@@ -9,3 +9,5 @@ pillow
 pybase64
 jinja2
 APScheduler
+ua-generator
+pyjwt
