@@ -1,0 +1,22 @@
+version: '3'
+
+services:
+  chat2api:
+    image: niansuh/chat2api:latest
+    container_name: chat2api
+    restart: unless-stopped
+    ports:
+      - '5005:5005'
+    volumes:
+      - ./data:/app/data
+    environment:
+      - TZ=Asia/Shanghai
+      - AUTHORIZATION=sk-xxx
+
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --cleanup --interval 300 chat2api
