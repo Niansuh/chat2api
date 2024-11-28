@@ -5,3 +5,5 @@
 /docs/
 /tmp/
 /data/
+/.venv/
+/.vscode/
