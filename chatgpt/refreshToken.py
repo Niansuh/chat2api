@@ -6,25 +6,21 @@ from fastapi import HTTPException
 
 from utils.Client import Client
 from utils.Logger import logger
-from utils.config import proxy_url_list
-import chatgpt.globals as globals
-
-
-def save_refresh_map(refresh_map):
-    with open(globals.REFRESH_MAP_FILE, "w") as file:
-        json.dump(refresh_map, file)
+from utils.configs import proxy_url_list
+import utils.globals as globals
 
 
 async def rt2ac(refresh_token, force_refresh=False):
     if not force_refresh and (refresh_token in globals.refresh_map and int(time.time()) - globals.refresh_map.get(refresh_token, {}).get("timestamp", 0) < 5 * 24 * 60 * 60):
         access_token = globals.refresh_map[refresh_token]["token"]
-        logger.info(f"refresh_token -> access_token from cache")
+        # logger.info(f"refresh_token -> access_token from cache")
         return access_token
     else:
         try:
             access_token = await chat_refresh(refresh_token)
             globals.refresh_map[refresh_token] = {"token": access_token, "timestamp": int(time.time())}
-            save_refresh_map(globals.refresh_map)
+            with open(globals.REFRESH_MAP_FILE, "w") as f:
+                json.dump(globals.refresh_map, f, indent=4)
             logger.info(f"refresh_token -> access_token with openai: {access_token}")
             return access_token
         except HTTPException as e:
@@ -45,11 +41,14 @@ async def chat_refresh(refresh_token):
             access_token = r.json()['access_token']
             return access_token
         else:
-            with open(globals.ERROR_TOKENS_FILE, "a", encoding="utf-8") as f:
-                f.write(refresh_token + "\n")
-            if refresh_token not in globals.error_token_list:
-                globals.error_token_list.append(refresh_token)
-            raise Exception(r.text[:100])
+            if "invalid_grant" in r.text or "access_denied" in r.text:
+                if refresh_token not in globals.error_token_list:
+                    globals.error_token_list.append(refresh_token)
+                    with open(globals.ERROR_TOKENS_FILE, "a", encoding="utf-8") as f:
+                        f.write(refresh_token + "\n")
+                raise Exception(r.text)
+            else:
+                raise Exception(r.text[:300])
     except Exception as e:
         logger.error(f"Failed to refresh access_token `{refresh_token}`: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to refresh access_token.")
