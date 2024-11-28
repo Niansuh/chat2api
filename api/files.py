@@ -4,7 +4,7 @@ import pybase64
 from PIL import Image
 
 from utils.Client import Client
-from utils.config import export_proxy_url, cf_file_url
+from utils.configs import export_proxy_url, cf_file_url
 
 
 async def get_file_content(url):
