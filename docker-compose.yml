@@ -1,23 +1,54 @@
-version: '3'
-
 services:
+  warp:
+    image: caomingjun/warp
+    container_name: warp
+    restart: always
+    environment:
+      - WARP_SLEEP=5
+    cap_add:
+      - MKNOD
+      - AUDIT_WRITE
+      - NET_ADMIN
+    sysctls:
+      - net.ipv6.conf.all.disable_ipv6=0
+      - net.ipv4.conf.all.src_valid_mark=1
+    volumes:
+      - ./warpdata:/var/lib/cloudflare-warp
+    networks:
+      - internal_network  # Use internal network and do not expose ports to the outside world
+    healthcheck:
+      test: ["CMD", "curl", "-f", "-s", "https://www.google.com"]  # Request Google in silent mode and return 2xx status code if successful
+      interval: 30s  # Check every 30 seconds
+      timeout: 10s   # Request timeout 10 seconds
+      retries: 3     # Marked as unhealthy after 3 failures
+      start_period: 5s  # After the container starts, wait 5 seconds before starting the check.
+      
   chat2api:
     image: niansuh/chat2api:latest
     container_name: chat2api
     restart: unless-stopped
     ports:
-      - '5005:5005'
+      - '5005:5005'  # Expose the chat2api service for external access
+    environment:
+      - TZ=Asia/Shanghai
+      - AUTHORIZATION=sk-xxx
+      - PROXY_URL=socks5://warp:1080  # Set PROXY_URL to the proxy address of the warp container
+    depends_on:
+      warp:
+        condition: service_healthy  # chat2api and warp are on the same internal network
+    networks:
+      - internal_network  # chat2api and warp are on the same internal network
     volumes:
       - ./data:/app/data # Mount some data that needs to be saved
-    environment:
-      - TZ=Asia/Shanghai # 设置时区
-      - ARK0SE_TOKEN_URL=http://ark0se:5006/token # Already built-in, do not change
 
-  ark0se:
-    image: lanqian528/funcaptcha_solver:latest
-    container_name: funcaptcha_solver
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
     restart: unless-stopped
-    ports:
-      - '5006:5006'
-    environment:
-      - TZ=Asia/Shanghai # Set the time zone
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --cleanup --interval 300 chat2api
+    
+networks:
+  internal_network:
+    driver: bridge  # Define a bridged network
