@@ -1,4 +1,4 @@
-Original Author: https://github.com/lanqian528/chat2api
+# Original Author: https://github.com/lanqian528/chat2api (CN Version)
 
 # CHAT2API
 
